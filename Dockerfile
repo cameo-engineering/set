@@ -41,14 +41,20 @@ RUN set -eux \
   < /dev/null > /dev/null \
   && rm -rf /var/lib/apt/lists/* /var/log/*
 
-# Node.js
+# Foundry
+ARG FOUNDRY_VERSION="nightly-f21a775b2935fdd8a8481b2913d5b0cbf67218cd"
+RUN set -eux \
+  && curl -fsSL https://github.com/gakonst/foundry/releases/download/${FOUNDRY_VERSION}/foundry_nightly_linux_amd64.tar.gz -o ./foundry.tar.gz \
+  && tar -xzf ./foundry.tar.gz -C /usr/local/bin/ \
+  && rm -rf ./foundry.tar.gz
+
+# Node.js / Yarn
 ARG NODE_JS_VERSION="16"
 RUN set -eux \
   && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key \
   | gpg --dearmor > /usr/share/keyrings/nodesource.gpg \
   && echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_JS_VERSION.x $UBUNTU_VERSION main" > /etc/apt/sources.list.d/nodesource.list
 
-# Yarn
 RUN set -eux \
   && curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg \
   | gpg --dearmor > /usr/share/keyrings/yarn.gpg \
@@ -62,12 +68,25 @@ RUN set -eux \
   < /dev/null > /dev/null \
   && rm -rf /var/lib/apt/lists/* /var/log/*
 
-# Slither / Mythrill/ Manticore
+# Prettier / Solhint / Remixd
 RUN set -eux \
-  && pip3 install slither-analyzer mythril manticore -qqq --no-cache-dir
+  && yarn global add \
+  prettier \
+  prettier-plugin-solidity \
+  solhint \
+  solhint-plugin-prettier \
+  @remix-project/remixd
+
+# Slither / Mythrill/ Manticore / solc-select
+RUN set -eux \
+  && pip3 install \
+  slither-analyzer \
+  mythril \
+  manticore \
+  solc-select -qqq --no-cache-dir
 
 # Echidna
-ARG ECHIDNA_VERSION="2.0.0"
+ARG ECHIDNA_VERSION="2.0.1"
 RUN set -eux \
   && curl -fsSL https://github.com/crytic/echidna/releases/download/v${ECHIDNA_VERSION}/echidna-test-${ECHIDNA_VERSION}-Ubuntu-18.04.tar.gz -o ./echidna-test-${ECHIDNA_VERSION}-Ubuntu-18.04.tar.gz \
   && curl -fsSL https://github.com/crytic/echidna/releases/download/v${ECHIDNA_VERSION}/echidna-test-${ECHIDNA_VERSION}-Ubuntu-18.04.tar.gz.sha256 -o ./echidna-test-${ECHIDNA_VERSION}-Ubuntu-18.04.tar.gz.sha256 \
