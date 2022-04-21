@@ -41,10 +41,17 @@ RUN set -eux \
   < /dev/null > /dev/null \
   && rm -rf /var/lib/apt/lists/* /var/log/*
 
-# Foundry
-ARG FOUNDRY_VERSION="nightly-f21a775b2935fdd8a8481b2913d5b0cbf67218cd"
+# Just
+ARG JUST_VERSION="1.1.2"
 RUN set -eux \
-  && curl -fsSL https://github.com/gakonst/foundry/releases/download/${FOUNDRY_VERSION}/foundry_nightly_linux_amd64.tar.gz -o ./foundry.tar.gz \
+  && curl -fsSL https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz -o ./just.tar.gz \
+  && tar -xzf ./just.tar.gz just -C /usr/local/bin/ \
+  && rm -rf ./just.tar.gz
+
+# Foundry
+ARG FOUNDRY_VERSION="nightly-321960f45ee9d8c65fcf799f4db244663e9c1128"
+RUN set -eux \
+  && curl -fsSL https://github.com/foundry-rs/foundry/releases/download/${FOUNDRY_VERSION}/foundry_nightly_linux_amd64.tar.gz -o ./foundry.tar.gz \
   && tar -xzf ./foundry.tar.gz -C /usr/local/bin/ \
   && rm -rf ./foundry.tar.gz
 
@@ -77,7 +84,7 @@ RUN set -eux \
   solhint-plugin-prettier \
   @remix-project/remixd
 
-# Slither / Mythrill/ Manticore / solc-select
+# Slither / Mythrill / Manticore / solc-select
 RUN set -eux \
   && pip3 install \
   slither-analyzer \
