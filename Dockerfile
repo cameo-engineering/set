@@ -75,9 +75,10 @@ RUN set -eux \
   < /dev/null > /dev/null \
   && rm -rf /var/lib/apt/lists/* /var/log/*
 
-# Prettier / Solhint / Remixd
+# zx / Prettier / Solhint / Remixd
 RUN set -eux \
   && yarn global add \
+  zx \
   prettier \
   prettier-plugin-solidity \
   solhint \
