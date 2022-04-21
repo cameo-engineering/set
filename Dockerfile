@@ -45,7 +45,7 @@ RUN set -eux \
 ARG JUST_VERSION="1.1.2"
 RUN set -eux \
   && curl -fsSL https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz -o ./just.tar.gz \
-  && tar -xzf ./just.tar.gz just -C /usr/local/bin/ \
+  && tar -xzf ./just.tar.gz -C /usr/local/bin/ just \
   && rm -rf ./just.tar.gz
 
 # Foundry
