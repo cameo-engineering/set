@@ -38,8 +38,29 @@ RUN set -eux \
   python3-dev \
   python-is-python3 \
   python3-pip \
+  wget \
   < /dev/null > /dev/null \
   && rm -rf /var/lib/apt/lists/* /var/log/*
+
+# Node.js / pnpm / zx
+ARG NODE_JS_VERSION="16"
+ARG PNPM_VERSION="7.0.0-rc.8"
+RUN set -eux \
+  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key \
+  | gpg --dearmor > /usr/share/keyrings/nodesource.gpg \
+  && echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_JS_VERSION.x $UBUNTU_VERSION main" > /etc/apt/sources.list.d/nodesource.list\
+  \
+  && apt-get update -qq \
+  && apt-get install -qq --no-install-recommends \
+  nodejs \
+  < /dev/null > /dev/null \
+  && rm -rf /var/lib/apt/lists/* /var/log/* \
+  \
+  && corepack enable \
+  && corepack prepare pnpm@${PNPM_VERSION} --activate \
+  \
+  && npm install --global zx \
+  && npm cache clean --force
 
 # Just
 ARG JUST_VERSION="1.1.2"
@@ -49,41 +70,11 @@ RUN set -eux \
   && rm -rf ./just.tar.gz
 
 # Foundry
-ARG FOUNDRY_VERSION="nightly-321960f45ee9d8c65fcf799f4db244663e9c1128"
+ARG FOUNDRY_VERSION="nightly-5490c4a0fef0a83827e4d5642730ea9ceff641b2"
 RUN set -eux \
   && curl -fsSL https://github.com/foundry-rs/foundry/releases/download/${FOUNDRY_VERSION}/foundry_nightly_linux_amd64.tar.gz -o ./foundry.tar.gz \
   && tar -xzf ./foundry.tar.gz -C /usr/local/bin/ \
   && rm -rf ./foundry.tar.gz
-
-# Node.js / Yarn
-ARG NODE_JS_VERSION="16"
-RUN set -eux \
-  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key \
-  | gpg --dearmor > /usr/share/keyrings/nodesource.gpg \
-  && echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_JS_VERSION.x $UBUNTU_VERSION main" > /etc/apt/sources.list.d/nodesource.list
-
-RUN set -eux \
-  && curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg \
-  | gpg --dearmor > /usr/share/keyrings/yarn.gpg \
-  && echo "deb [signed-by=/usr/share/keyrings/yarn.gpg] https://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
-
-RUN set -eux \
-  && apt-get update -qq \
-  && apt-get install -qq --no-install-recommends \
-  nodejs \
-  yarn \
-  < /dev/null > /dev/null \
-  && rm -rf /var/lib/apt/lists/* /var/log/*
-
-# zx / Prettier / Solhint / Remixd
-RUN set -eux \
-  && yarn global add \
-  zx \
-  prettier \
-  prettier-plugin-solidity \
-  solhint \
-  solhint-plugin-prettier \
-  @remix-project/remixd
 
 # Slither / Mythrill / Manticore / solc-select
 RUN set -eux \
@@ -103,3 +94,15 @@ RUN set -eux \
   \
   && tar -xzf ./echidna-test-${ECHIDNA_VERSION}-Ubuntu-18.04.tar.gz -C /usr/local/bin/ \
   && rm -rf ./echidna*
+
+ARG USER="cameo"
+RUN set -eux \
+  && adduser \
+  --system \
+  --group \
+  --shell /bin/bash \
+  --disabled-password \
+  --gecos '' \
+  --home /home/${USER}/ \
+  ${USER}
+WORKDIR /home/${USER}/
